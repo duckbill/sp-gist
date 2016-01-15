@@ -1,0 +1,82 @@
+CREATE EXTENSION spgist;
+CREATE TABLE test_text(t text);
+\copy test_text from 'data/text.data'
+CREATE INDEX ttidx ON test_text USING spgist (t);
+SET enable_seqscan=off;
+EXPLAIN (COSTS OFF)
+SELECT * FROM test_text WHERE t = 'http://0-2000webhosting.co.uk/email-configuration.htm';
+                                       QUERY PLAN                                        
+-----------------------------------------------------------------------------------------
+ Bitmap Heap Scan on test_text
+   Recheck Cond: (t = 'http://0-2000webhosting.co.uk/email-configuration.htm'::text)
+   ->  Bitmap Index Scan on ttidx
+         Index Cond: (t = 'http://0-2000webhosting.co.uk/email-configuration.htm'::text)
+(4 rows)
+
+SELECT * FROM test_text WHERE t = 'http://0-2000webhosting.co.uk/email-configuration.htm';
+                           t                           
+-------------------------------------------------------
+ http://0-2000webhosting.co.uk/email-configuration.htm
+(1 row)
+
+SELECT * FROM test_text WHERE t = 'http://www.data-wales.co.uk/lamb.htm';
+                  t                   
+--------------------------------------
+ http://www.data-wales.co.uk/lamb.htm
+(1 row)
+
+SELECT * FROM test_text WHERE t = 'http://comwebhosting.co.uk/plan-order.asp?plan=Windows_E_Biz';
+                              t                               
+--------------------------------------------------------------
+ http://comwebhosting.co.uk/plan-order.asp?plan=Windows_E_Biz
+(1 row)
+
+SELECT * FROM test_text WHERE t = 'http://abcde.co.uk/betterhearingservices/about_us.html';
+                           t                            
+--------------------------------------------------------
+ http://abcde.co.uk/betterhearingservices/about_us.html
+(1 row)
+
+SELECT * FROM test_text WHERE t = 'http://www.airportparkingexpress.co.uk/belfast.htm';
+                         t                          
+----------------------------------------------------
+ http://www.airportparkingexpress.co.uk/belfast.htm
+(1 row)
+
+SELECT * FROM test_text WHERE t = 'http://www.skiing-holidays-austria.co.uk/16/panorama-ski-austria-from-prestwick.html';
+                                          t                                           
+--------------------------------------------------------------------------------------
+ http://www.skiing-holidays-austria.co.uk/16/panorama-ski-austria-from-prestwick.html
+(1 row)
+
+SELECT * FROM test_text WHERE t = 'http://www.all-inclusive-holiday-bargains.co.uk/all-inclusive-holidays-austria.htm';
+                                         t                                          
+------------------------------------------------------------------------------------
+ http://www.all-inclusive-holiday-bargains.co.uk/all-inclusive-holidays-austria.htm
+(1 row)
+
+CREATE TABLE test_quad(p point);
+\copy test_quad from 'data/point.data'
+CREATE INDEX tqidx ON test_quad USING spgist (p);
+EXPLAIN (COSTS OFF)
+SELECT * FROM test_quad WHERE p ~= '(8.51277472174491,5.86434731598175)';
+                               QUERY PLAN                                
+-------------------------------------------------------------------------
+ Bitmap Heap Scan on test_quad
+   Recheck Cond: (p ~= '(8.51277472174491,5.86434731598175)'::point)
+   ->  Bitmap Index Scan on tqidx
+         Index Cond: (p ~= '(8.51277472174491,5.86434731598175)'::point)
+(4 rows)
+
+SELECT * FROM test_quad WHERE p ~= '(8.51277472174491,5.86434731598175)';
+                  p                  
+-------------------------------------
+ (8.51277472174491,5.86434731598175)
+(1 row)
+
+SELECT * FROM test_quad WHERE p ~= '(1.39955907884019,9.12045046572942)';
+                  p                  
+-------------------------------------
+ (1.39955907884019,9.12045046572942)
+(1 row)
+
